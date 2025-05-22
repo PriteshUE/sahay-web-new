@@ -43,3 +43,10 @@ interface ImportantDateData {
   note: string;
   date: string;
 }
+
+interface UpdateDate {
+  importantDateName: string;
+  importantDate: Date | string;
+  importantDateRemarks: string;
+  importantDateId?: string;
+}

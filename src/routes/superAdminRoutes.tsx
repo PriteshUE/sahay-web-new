@@ -16,6 +16,7 @@ const AddAdminUser = lazy(
 );
 
 const Calendar = lazy(() => import("../pages/Calendar"));
+const TaskStatus = lazy(() => import("../pages/Task/TaskStatus"));
 
 export default function SuperAdminRoutes() {
   return (
@@ -25,6 +26,7 @@ export default function SuperAdminRoutes() {
         <Route index Component={Dashboard} />
         <Route path="profile" Component={Profile} />
         <Route path="calendar" Component={Calendar} />
+        <Route path="task-status" Component={TaskStatus} />
         <Route path="settings" Component={Theme} />
         <Route path="location">
           <Route path="countries" Component={CountriesList} />

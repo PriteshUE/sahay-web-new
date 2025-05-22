@@ -171,7 +171,7 @@ export const navigationData = [
     id: 4,
     icon: "bx bx-user-voice",
     label: "Consultants",
-    link: "/",
+    link: "/administrator-panel/task-status",
     permission: "View",
     moduleKey: "CONSULTANT",
   },
