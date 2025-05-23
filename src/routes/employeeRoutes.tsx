@@ -2,7 +2,7 @@ import DashboardLayout from "@/features/layouts/DashboardLayout/dashboardLayout"
 import { lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
-const Dashboard = lazy(() => import("../pages/homePage/HomePage"));
+const Dashboard = lazy(() => import("../pages/homePage/homePage"));
 const Theme = lazy(() => import("../pages/theme/Theme"));
 
 const Calendar = lazy(() => import("../pages/Calendar"));

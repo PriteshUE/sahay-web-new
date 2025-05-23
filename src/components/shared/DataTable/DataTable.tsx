@@ -146,15 +146,15 @@ const TableData = <T extends Record<string, unknown>>({
   const DEFAULT_COLUMN_WIDTH = 150;
 
   const FIXED_WIDTHS = {
-    sr_no: 80,
-    action: 80,
+    srNo: 40,
+    action: 40,
     checkbox: 40,
     index: 80,
   };
 
   const DEFAULT_WIDTHS = Object.fromEntries(
     columnKeys
-      .filter((key) => key !== "sr_no")
+      .filter((key) => key !== "srNo")
       .map((key) => [key, DEFAULT_COLUMN_WIDTH]),
   );
 
@@ -198,8 +198,8 @@ const TableData = <T extends Record<string, unknown>>({
     columnKeys.reduce((sum, key) => {
       return (
         sum +
-        (key === "sr_no"
-          ? FIXED_WIDTHS.sr_no
+        (key === "srNo"
+          ? FIXED_WIDTHS.srNo
           : currentWidths[key] || DEFAULT_COLUMN_WIDTH)
       );
     }, 0) +
@@ -215,7 +215,7 @@ const TableData = <T extends Record<string, unknown>>({
   }, [columnWidths, localStorageId]);
 
   const handleResize = (columnKey: string, width: number) => {
-    if (columnKey === "sr_no" || columnKey === "action") return;
+    if (columnKey === "srNo" || columnKey === "action") return;
 
     setColumnWidths((prev) => ({
       ...prev,
@@ -245,7 +245,7 @@ const TableData = <T extends Record<string, unknown>>({
           variant="outline"
           size="sm"
           onClick={resetColumnWidths}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 cursor-pointer"
         >
           <RefreshCw className="h-4 w-4" />
           Reset Column Widths
@@ -277,15 +277,15 @@ const TableData = <T extends Record<string, unknown>>({
                   <ResizableTableHead
                     key={clm + index}
                     initialWidth={
-                      clm === "sr_no"
-                        ? FIXED_WIDTHS.sr_no
+                      clm === "srNo"
+                        ? FIXED_WIDTHS.srNo
                         : columnWidths[clm] || 150
                     }
                     onResize={(width) => handleResize(clm, width)}
-                    isResizable={clm !== "sr_no"} // Make sr_no non-resizable
+                    isResizable={clm !== "srNo"}
                     style={
-                      clm === "sr_no"
-                        ? { width: `${FIXED_WIDTHS.sr_no}px` }
+                      clm === "srNo"
+                        ? { width: `${FIXED_WIDTHS.srNo}px` }
                         : undefined
                     }
                   >
@@ -376,18 +376,18 @@ const TableData = <T extends Record<string, unknown>>({
                       <TableCell
                         key={`${item[primaryKey]}_${clm}`}
                         className={`whitespace-nowrap ${
-                          clm === "sr_no" ? "px-0" : "px-6"
+                          clm === "srNo" ? "px-0" : "px-6"
                         }`}
                         style={{
                           width:
-                            clm === "sr_no"
-                              ? `${FIXED_WIDTHS.sr_no}px`
+                            clm === "srNo"
+                              ? `${FIXED_WIDTHS.srNo}px`
                               : columnWidths[clm]
                                 ? `${columnWidths[clm]}px`
                                 : "150px",
                           maxWidth:
-                            clm === "sr_no"
-                              ? `${FIXED_WIDTHS.sr_no}px`
+                            clm === "srNo"
+                              ? `${FIXED_WIDTHS.srNo}px`
                               : columnWidths[clm]
                                 ? `${columnWidths[clm]}px`
                                 : "150px",
