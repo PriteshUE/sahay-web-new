@@ -209,6 +209,7 @@ export default function TaskStatus() {
         tableData={filteredTasks}
         primaryKey="id"
         columns={visibleColumns}
+        localStorageId="TaskStatusColumnWidth"
       />
     </div>
   );

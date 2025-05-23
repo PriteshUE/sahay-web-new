@@ -58,7 +58,7 @@ interface TableProps<T extends Record<string, unknown>> {
   selectedValue?: T[] | T;
   onCheckbox?: (selectedItems: T[]) => void;
   handleChange?: (selected: T[] | T) => void;
-  tableId?: string; // Unique identifier for localStorage
+  localStorageId?: string; // Unique identifier for localStorage
 }
 
 interface ResizableTableHeadProps {
@@ -137,7 +137,7 @@ const TableData = <T extends Record<string, unknown>>({
   multiSelect,
   selectedValue = [],
   handleChange,
-  tableId = "defaultTableId", // Default ID for localStorage
+  localStorageId = "defaultLocalStorageId", // Default ID for localStorage
 }: TableProps<T>) => {
   const columnKeys = Object.keys(columns ?? {});
   const showCheckboxes = multiSelect || (!!selectedValue && !!handleChange);
@@ -162,7 +162,7 @@ const TableData = <T extends Record<string, unknown>>({
   const getInitialWidths = () => {
     if (typeof window === "undefined") return {};
 
-    const savedWidths = localStorage.getItem(`tableWidths_${tableId}`);
+    const savedWidths = localStorage.getItem(`tableWidths_${localStorageId}`);
     if (savedWidths) {
       return JSON.parse(savedWidths);
     }
@@ -179,10 +179,10 @@ const TableData = <T extends Record<string, unknown>>({
     setColumnWidths(DEFAULT_WIDTHS);
 
     if (typeof window !== "undefined") {
-      localStorage.removeItem(`tableWidths_${tableId}`);
+      localStorage.removeItem(`tableWidths_${localStorageId}`);
     }
     setTableRenderKey((k) => k + 1);
-  }, [DEFAULT_WIDTHS, tableId]);
+  }, [DEFAULT_WIDTHS, localStorageId]);
 
   const getCurrentWidths = () => {
     if (Object.keys(columnWidths).length === 0) {
@@ -208,11 +208,11 @@ const TableData = <T extends Record<string, unknown>>({
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem(
-        `tableWidths_${tableId}`,
+        `tableWidths_${localStorageId}`,
         JSON.stringify(columnWidths),
       );
     }
-  }, [columnWidths, tableId]);
+  }, [columnWidths, localStorageId]);
 
   const handleResize = (columnKey: string, width: number) => {
     if (columnKey === "sr_no" || columnKey === "action") return;

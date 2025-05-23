@@ -48,7 +48,7 @@ interface TableProps<T extends Record<string, unknown>> {
   multiSelect?: boolean;
   selectedValue?: T[] | T;
   handleChange?: (selected: T[] | T) => void;
-  tableId: string;
+  localStorageId: string;
 }
 interface ResizableTableProps {
   children: React.ReactNode;
@@ -195,7 +195,7 @@ const DndTable = <T extends Record<string, unknown>>({
   multiSelect,
   selectedValue = [],
   handleChange,
-  tableId = "dndTableWidthId",
+  localStorageId = "dndTableWidthId",
 }: TableProps<T>) => {
   const [rows, setRows] = useState<T[]>(tableData);
   // const [columnWidths, setColumnWidths] = useState<Record<string, number>>({});
@@ -210,8 +210,8 @@ const DndTable = <T extends Record<string, unknown>>({
     setRows(tableData);
   }, [tableData]);
 
-  // Use dndTableWidthId as default tableId for localStorage
-  const LOCAL_STORAGE_KEY = `tableWidths_${tableId || "dndTableWidthId"}`;
+  // Use dndTableWidthId as default localStorageId for localStorage
+  const LOCAL_STORAGE_KEY = `tableWidths_${localStorageId || "dndTableWidthId"}`;
 
   // Get saved widths from localStorage or use defaults
   const getInitialWidths = () => {
@@ -281,10 +281,10 @@ const DndTable = <T extends Record<string, unknown>>({
     setColumnWidths(DEFAULT_WIDTHS);
 
     if (typeof window !== "undefined") {
-      localStorage.removeItem(`tableWidths_${tableId}`);
+      localStorage.removeItem(`tableWidths_${localStorageId}`);
     }
     setTableRenderKey((k) => k + 1);
-  }, [DEFAULT_WIDTHS, tableId]);
+  }, [DEFAULT_WIDTHS, localStorageId]);
 
   return (
     <Card className="w-full p-2 mb-5 overflow-hidden">

@@ -97,7 +97,7 @@ export default function CountriesList() {
             paginationDetails={countryList}
             setPaginationFilter={setPaginationFilter}
             permissionKey="marketing"
-            tableId="countryList"
+            localStorageId="countryList"
           />
         </div>
 
