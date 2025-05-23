@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import TaskTable from "@/components/shared/TaskTable";
 import DropdownSearchMenu from "@/components/shared/DropdownSearchMenu/DropdownSearchMenu";
+import DndTable from "@/components/shared/DndTable";
 
 // Define a type for your tasks
 type Task = {
@@ -205,7 +205,7 @@ export default function TaskStatus() {
           />
         )}
       </div>
-      <TaskTable
+      <DndTable
         tableData={filteredTasks}
         primaryKey="id"
         columns={visibleColumns}

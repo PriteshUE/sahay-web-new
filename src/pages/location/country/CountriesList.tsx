@@ -34,6 +34,9 @@ export default function CountriesList() {
   const [columnToggleOptions, _setColumnToggleOptions] = useState([
     { key: "srNo", label: "Sr No", visible: true },
     { key: "countryName", label: "Country Name", visible: true },
+    { key: "country1", label: "Country 1", visible: true },
+    { key: "country2", label: "Country 2", visible: true },
+    { key: "country3", label: "Country 3", visible: true },
   ]);
 
   // Filter visible columns
@@ -82,7 +85,6 @@ export default function CountriesList() {
           </div>
         </div>
         <div className="mt-3 bg-white py-2 tb:py-4 tb:mt-6">
-          {/* ✅ Custom TableData Component */}
           <TableData
             tableData={countryList?.data.map((item, index) => ({
               ...item,
@@ -95,6 +97,7 @@ export default function CountriesList() {
             paginationDetails={countryList}
             setPaginationFilter={setPaginationFilter}
             permissionKey="marketing"
+            tableId="countryList"
           />
         </div>
 

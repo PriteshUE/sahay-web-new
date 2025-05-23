@@ -22,22 +22,37 @@ export default function useCountriesList() {
       {
         countryId: "1c7ea9a8-3ad3-4db0-862d-a3ace75c9ad0",
         countryName: "India",
+        country1: "1",
+        country2: "2",
+        country3: "3",
       },
       {
         countryId: "433dac93-3317-4ee0-ac61-11937a26393c",
         countryName: "Europe",
+        country1: "1",
+        country2: "2",
+        country3: "3",
       },
       {
         countryId: "46330f51-074d-4146-add0-aa3c843cb71b",
         countryName: "USA",
+        country1: "1",
+        country2: "2",
+        country3: "3",
       },
       {
         countryId: "8b68c967-69a2-422e-9d05-f5f4660ec153",
         countryName: "Nepal",
+        country1: "1",
+        country2: "2",
+        country3: "3",
       },
       {
         countryId: "5175f7a4-da98-4507-8ec3-2070722aa84c",
         countryName: "Japan",
+        country1: "1",
+        country2: "2",
+        country3: "3",
       },
     ],
   });

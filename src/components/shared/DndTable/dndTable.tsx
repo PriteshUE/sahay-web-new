@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Table,
   TableHeader,
@@ -23,6 +23,7 @@ import {
   ChevronDown,
   KeyRound,
   GripVertical,
+  RefreshCw,
 } from "lucide-react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -30,26 +31,31 @@ import { SpinnerIcon } from "../Icons";
 import FormCheckbox from "../Form/FormCheckbox/FormCheckbox";
 import Pagination from "../Pagination/Pagination";
 
-const DND_ITEM_TYPE = "ROW";
-
+interface TableProps<T extends Record<string, unknown>> {
+  tableData?: T[];
+  columns?: Partial<Record<keyof T, string>>;
+  primaryKey: keyof T;
+  onEdit?: (item: T) => void;
+  onDelete?: (item: T) => void;
+  paginationDetails?: PaginationFilter;
+  setPaginationFilter?: (filter: PaginationFilter) => void;
+  isLoading?: boolean;
+  isActionButton?: boolean;
+  additionalButton?: React.ReactNode;
+  onAdditionButton?: (item: T) => void;
+  customActions?: (row: T) => React.ReactNode;
+  showIndexColumn?: boolean;
+  multiSelect?: boolean;
+  selectedValue?: T[] | T;
+  handleChange?: (selected: T[] | T) => void;
+  tableId: string;
+}
 interface ResizableTableProps {
   children: React.ReactNode;
 }
-
-const ResizableTable = ({ children }: ResizableTableProps) => {
-  return (
-    <Table className="w-full border-collapse table-fixed">{children}</Table>
-  );
-};
-
 interface ResizableTableHeaderProps {
   children: React.ReactNode;
 }
-
-const ResizableTableHeader = ({ children }: ResizableTableHeaderProps) => {
-  return <TableHeader className="relative">{children}</TableHeader>;
-};
-
 interface ResizableTableHeadProps {
   children: React.ReactNode;
   onResize?: (width: number) => void;
@@ -57,6 +63,25 @@ interface ResizableTableHeadProps {
   isResizable?: boolean;
   style?: React.CSSProperties;
 }
+interface DraggableRowProps {
+  id: string;
+  index: number;
+  moveRow: (dragIndex: number, hoverIndex: number) => void;
+  children: React.ReactNode;
+}
+
+const DND_ITEM_TYPE = "ROW";
+const DEFAULT_COLUMN_WIDTH = 150;
+
+const ResizableTable = ({ children }: ResizableTableProps) => {
+  return (
+    <Table className="w-full border-collapse table-fixed">{children}</Table>
+  );
+};
+
+const ResizableTableHeader = ({ children }: ResizableTableHeaderProps) => {
+  return <TableHeader className="relative">{children}</TableHeader>;
+};
 
 const ResizableTableHead = ({
   children,
@@ -106,13 +131,6 @@ const ResizableTableHead = ({
   );
 };
 
-interface DraggableRowProps {
-  id: string;
-  index: number;
-  moveRow: (dragIndex: number, hoverIndex: number) => void;
-  children: React.ReactNode;
-}
-
 function DraggableRow({ id, index, moveRow, children }: DraggableRowProps) {
   const ref = useRef<HTMLTableRowElement>(null);
 
@@ -132,31 +150,18 @@ function DraggableRow({ id, index, moveRow, children }: DraggableRowProps) {
       const dragIndex = item.index;
       const hoverIndex = index;
 
-      // Don't replace items with themselves
       if (dragIndex === hoverIndex) return;
 
-      // Determine rectangle on screen
       const hoverBoundingRect = ref.current?.getBoundingClientRect();
-      // Get vertical middle
       const hoverMiddleY =
         (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-      // Determine mouse position
       const clientOffset = monitor.getClientOffset();
-      // Get pixels to the top
       const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
 
-      // Only perform the move when the mouse has crossed half of the items height
-      // When dragging downwards, only move when the cursor is below 50%
-      // When dragging upwards, only move when the cursor is above 50%
       if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
       if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
 
-      // Time to actually perform the action
       moveRow(dragIndex, hoverIndex);
-      // Note: we're mutating the monitor item here!
-      // Generally it's better to avoid mutations,
-      // but it's good here for the sake of performance
-      // to avoid expensive index searches.
       item.index = hoverIndex;
     },
   });
@@ -173,26 +178,7 @@ function DraggableRow({ id, index, moveRow, children }: DraggableRowProps) {
   );
 }
 
-interface TableProps<T extends Record<string, unknown>> {
-  tableData?: T[];
-  columns?: Partial<Record<keyof T, string>>;
-  primaryKey: keyof T;
-  onEdit?: (item: T) => void;
-  onDelete?: (item: T) => void;
-  paginationDetails?: PaginationFilter;
-  setPaginationFilter?: (filter: PaginationFilter) => void;
-  isLoading?: boolean;
-  isActionButton?: boolean;
-  additionalButton?: React.ReactNode;
-  onAdditionButton?: (item: T) => void;
-  customActions?: (row: T) => React.ReactNode;
-  showIndexColumn?: boolean;
-  multiSelect?: boolean;
-  selectedValue?: T[] | T;
-  handleChange?: (selected: T[] | T) => void;
-}
-
-const TableData = <T extends Record<string, unknown>>({
+const DndTable = <T extends Record<string, unknown>>({
   tableData = [],
   columns = {},
   primaryKey,
@@ -209,10 +195,13 @@ const TableData = <T extends Record<string, unknown>>({
   multiSelect,
   selectedValue = [],
   handleChange,
+  tableId = "dndTableWidthId",
 }: TableProps<T>) => {
   const [rows, setRows] = useState<T[]>(tableData);
-  const [columnWidths, setColumnWidths] = useState<Record<string, number>>({});
+  // const [columnWidths, setColumnWidths] = useState<Record<string, number>>({});
   const tableRef = useRef<HTMLDivElement>(null);
+
+  const [tableRenderKey, setTableRenderKey] = useState(0);
 
   const columnKeys = Object.keys(columns ?? {});
   const showCheckboxes = multiSelect || (!!selectedValue && !!handleChange);
@@ -220,6 +209,29 @@ const TableData = <T extends Record<string, unknown>>({
   useEffect(() => {
     setRows(tableData);
   }, [tableData]);
+
+  // Use dndTableWidthId as default tableId for localStorage
+  const LOCAL_STORAGE_KEY = `tableWidths_${tableId || "dndTableWidthId"}`;
+
+  // Get saved widths from localStorage or use defaults
+  const getInitialWidths = () => {
+    if (typeof window === "undefined") return {};
+    const savedWidths = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedWidths) {
+      return JSON.parse(savedWidths);
+    }
+    return {};
+  };
+
+  const [columnWidths, setColumnWidths] =
+    useState<Record<string, number>>(getInitialWidths());
+
+  // Save column widths to localStorage on change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(columnWidths));
+    }
+  }, [columnWidths, LOCAL_STORAGE_KEY]);
 
   const handleResize = (columnKey: string, width: number) => {
     setColumnWidths((prev) => ({
@@ -252,22 +264,50 @@ const TableData = <T extends Record<string, unknown>>({
     }
   };
 
-  // Calculate total width of all columns
+  const DEFAULT_WIDTHS = Object.fromEntries(
+    columnKeys
+      .filter((key) => key !== "sr_no")
+      .map((key) => [key, DEFAULT_COLUMN_WIDTH]),
+  );
+
   const totalWidth =
-    40 + // drag handle
-    (showCheckboxes ? 40 : 0) + // checkbox column
-    (showIndexColumn ? 80 : 0) + // index column
-    columnKeys.reduce((sum, key) => sum + (columnWidths[key] || 150), 0) + // data columns
-    (isActionButton ? 40 : 0); // action column
+    40 +
+    (showCheckboxes ? 40 : 0) +
+    (showIndexColumn ? 80 : 0) +
+    columnKeys.reduce((sum, key) => sum + (columnWidths[key] || 150), 0) +
+    (isActionButton ? 40 : 0);
+
+  const resetColumnWidths = useCallback(() => {
+    setColumnWidths(DEFAULT_WIDTHS);
+
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(`tableWidths_${tableId}`);
+    }
+    setTableRenderKey((k) => k + 1);
+  }, [DEFAULT_WIDTHS, tableId]);
 
   return (
     <Card className="w-full p-2 mb-5 overflow-hidden">
+      <div className="flex justify-end mb-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={resetColumnWidths}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Reset Column Widths
+        </Button>
+      </div>
       <div
         className="overflow-x-auto max-h-[calc(100svh-183px)] tb:max-h-[calc(100svh-260px)]"
         ref={tableRef}
         style={{ overflowX: "auto" }}
       >
-        <div style={{ width: `${totalWidth}px`, minWidth: "100%" }}>
+        <div
+          style={{ width: `${totalWidth}px`, minWidth: "100%" }}
+          key={tableRenderKey}
+        >
           <DndProvider backend={HTML5Backend}>
             <ResizableTable>
               <ResizableTableHeader>
@@ -475,4 +515,4 @@ const TableData = <T extends Record<string, unknown>>({
   );
 };
 
-export default TableData;
+export default DndTable;
